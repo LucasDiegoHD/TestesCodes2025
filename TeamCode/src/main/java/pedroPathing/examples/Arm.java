@@ -15,15 +15,12 @@ import pedroPathing.constants.LConstants;
 @TeleOp
 public class Arm extends OpMode {
 
-    // --- Drive (PedroPathing) ---
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
 
-    // --- Gripper subsystems ---
     private DcMotorEx elevatorMotor;
     private Servo leftArmServo, rightArmServo, clawServo;
 
-    // Servo positions (ajuste conforme necessário)
     private static final double braçoSubindo      = 0.2;
     private static final double braçoDescendo   = 0.8;
     private static final double garraAbrindo   = 0.3;
@@ -31,24 +28,23 @@ public class Arm extends OpMode {
 
     @Override
     public void init() {
-        // 1) Configura as constantes do PedroPathing
+
         Constants.setConstants(FConstants.class, LConstants.class);
 
-        // 2) Inicializa o Follower
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        // 3) Inicializa o elevador como DcMotorEx
+
         elevatorMotor = hardwareMap.get(DcMotorEx.class, "elevatorMotor");
         elevatorMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         elevatorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // 4) Inicializa os servos do braço
+
         leftArmServo  = hardwareMap.get(Servo.class, "leftArmServo");
         rightArmServo = hardwareMap.get(Servo.class, "rightArmServo");
         rightArmServo.setDirection(Servo.Direction.REVERSE);
 
-        // 5) Inicializa o servo da garra
+
         clawServo = hardwareMap.get(Servo.class, "clawServo");
     }
 
@@ -56,10 +52,9 @@ public class Arm extends OpMode {
     public void start() {
         follower.startTeleopDrive();
     }
-
     @Override
     public void loop() {
-        // —— 1) DRIVE FIELD-CENTRIC ——
+
         follower.setTeleOpMovementVectors(
                 -gamepad1.left_stick_y,   // forward/back
                 -gamepad1.left_stick_x,   // strafe
@@ -68,7 +63,6 @@ public class Arm extends OpMode {
         );
         follower.update();
 
-        // —— 2) ELEVADOR ——
         if (gamepad2.right_trigger > 0.1) {
             elevatorMotor.setPower(1.0);
         } else if (gamepad2.right_bumper) {
@@ -77,7 +71,6 @@ public class Arm extends OpMode {
             elevatorMotor.setPower(0.0);
         }
 
-        // —— 3) BRAÇO DA GARRA ——
         if (gamepad2.y) {
             leftArmServo.setPosition(braçoSubindo);
             rightArmServo.setPosition(braçoSubindo);
@@ -86,14 +79,12 @@ public class Arm extends OpMode {
             rightArmServo.setPosition(braçoDescendo);
         }
 
-        // —— 4) ABRIR / FECHAR GARRA ——
         if (gamepad2.x) {
             clawServo.setPosition(garraFechando);
         } else if (gamepad2.square) {
             clawServo.setPosition(garraAbrindo);
         }
 
-        // —— 5) TELEMETRIA ——
         telemetry.addData("Drive X", follower.getPose().getX());
         telemetry.addData("Drive Y", follower.getPose().getY());
         telemetry.addData("Heading (°)", Math.toDegrees(follower.getPose().getHeading()));
@@ -103,7 +94,6 @@ public class Arm extends OpMode {
 
     @Override
     public void stop() {
-        // Para o elevador ao final
         elevatorMotor.setPower(0);
     }
 }
